@@ -29,11 +29,11 @@ def heat_eq(f, N, M, alpha, beta, u_0, a, T):
 
 
     ========OUTPUTS========
-    u : np.ndarray, shape(M+1, N+1)
+    u : np.ndarray, shape(N+1, M+1)
         Complete numerical solution including boundary vaues and ICs.
     x : np.ndarray, shape(N+1,)
         Full spacial grid from x_0=0.0 to x_N=1.0 with step size h.
-    dt : np.ndarray, shape(M+1,)
+    t : np.ndarray, shape(M+1,)
         Full temporal grid from t_0=0.0 to t_M=T with step size dt.
     '''
 
