@@ -70,15 +70,6 @@ def elliptic_bvp_solver(alpha, beta, f, N, u_exact):
     plt.legend()   
     plt.grid(True)
     plt.show()
-
-    '''
-    TODO:
-    1. Separate interior points
-    2. Assemble Tridiagonal Arrays
-    3. Assemble RHS vector and apply DBCs
-    4. Solve and reassemble u(x)
-    5. Generate plot of u on the linespace x
-    '''
     
     return x, u
 
