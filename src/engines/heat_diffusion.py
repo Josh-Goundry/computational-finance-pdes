@@ -15,7 +15,7 @@ def heat_eq(f, N, M, alpha, beta, u_0, a, T):
     N : int
         The number of spacial grid points. Creates N+1 grid points and N-1 unknowns. 
     M : int
-        The number of time steps, creating i grid points from t_0 to t_M. 
+        The number of time steps, creating M+1 grid points from t_0 to t_M. 
     alpha: float
         Dirichlet boundary condition at u(0, t)=alpha.
     beta: float
@@ -29,7 +29,7 @@ def heat_eq(f, N, M, alpha, beta, u_0, a, T):
 
 
     ========OUTPUTS========
-    u_approx : np.ndarray, shape(M+1, N+1)
+    u : np.ndarray, shape(M+1, N+1)
         Complete numerical solution including boundary vaues and ICs.
     x : np.ndarray, shape(N+1,)
         Full spacial grid from x_0=0.0 to x_N=1.0 with step size h.
