@@ -50,10 +50,10 @@ def bs_solver(R, M, f_0, f_R, g, vol, r, T, K):
     i = np.arange(1, R)
 
     #Defining the tridiagonal entries
-    sub_diag = -(dt/2)*(vol**2)*i**2
+    sub_diag = (dt/2) * i * (r - (vol**2 * i))
     sub_diag[0] = 0
-    main_diag = (1 + dt*(vol**2 * i**2 + r*i + r))
-    super_diag = -dt*((vol**2 * i**2)/2 + r*i)
+    main_diag = (1 + dt*(vol**2 * i**2 + r))
+    super_diag = -(dt/2) * i * (r + (vol**2 * i))
     super_diag[-1] = 0
 
     #Appling our BCs and IC
@@ -64,8 +64,8 @@ def bs_solver(R, M, f_0, f_R, g, vol, r, T, K):
     #Recursive loop solving each tridiagonal system
     for n in range(M):
         b = V[1:-1, n].copy()
-        b[0] += (dt/2*(vol**2)*1) * f_0(t[n+1])
-        b[-1] += dt*((vol**2 * (R-1)**2)/2 + r*(R-1)) * f_R(t[n+1], s[-1])
+        b[0] -= (dt/2) * 1 * (r - (vol**2 * 1)) * f_0(t[n+1])
+        b[-1] -= -(dt/2) * (R-1) * (r + (vol**2 * (R-1))) * f_R(t[n+1], s[-1])
 
         V[1:-1,n+1] = ts(sub_diag, main_diag, super_diag, b)
     
