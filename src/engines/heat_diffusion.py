@@ -54,7 +54,7 @@ def heat_eq(f, N, M, alpha, beta, u_0, a, T):
     #Implementing the IC and BCs
     u[:,0] = u_0(x)
     u[0,:] = alpha
-    u[-1:0] = beta
+    u[-1,:] = beta
 
     #Defining our tridiagonal arrays
     sub_diag = np.full(N-1, -lam_val, dtype=float)
@@ -66,8 +66,8 @@ def heat_eq(f, N, M, alpha, beta, u_0, a, T):
     #Recursive tridiagonal solver and defining the RHS
     for n in range(M):
         b = u[1:-1, n].copy()
-        b[0] += alpha
-        b[-1] += beta
+        b[0] += lam_val*alpha
+        b[-1] += lam_val*beta
 
         #Summing our forcing function f
         if f is not None:
@@ -94,7 +94,7 @@ if __name__ == "__main__":
     fig = plt.figure(figsize=(10, 6))
     ax = fig.add_subplot(111, projection='3d')
 
-    surf = ax.plot_surface(X, T_grid, u, cmap='viridis', edgecolor=None)
+    surf = ax.plot_surface(X, T_grid, u.T, cmap='viridis', edgecolor=None)
 
     ax.set_xlabel('Space (x)')
     ax.set_ylabel('Time (t)')
