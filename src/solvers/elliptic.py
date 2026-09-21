@@ -2,17 +2,17 @@ import numpy as np
 import matplotlib.pyplot as plt
 from tridiagonal import thomas_solver
 
-def elliptic_bvp_solver(alpha, beta, f, N, u_exact):
+def elliptic_bvp_solver(alpha, beta, f, N):
     '''
     Discretizes and solves the 1D Epilleptic BVP -u''(x)=f(x) on (0,1)
 
     ========INPUTS========
-    f : callable
-        The right hand side source function f(x). Must accept a NumPy array of x-coordinates
     alpha : float
         Dirichlet boundary condition u(0)=alpha
     beta : float
         Dirichlet boundary condition u(1)=beta
+   f : callable
+        The right hand side source function f(x). Must accept a NumPy array of x-coordinates 
     N : int
         Number of spacial intervals. Creates N+1 grid points and N-1 unknowns
 
@@ -54,22 +54,6 @@ def elliptic_bvp_solver(alpha, beta, f, N, u_exact):
     #Solving the tridiagonal system and reassemble u(x)
     u_int = thomas_solver(a_diag, b_diag, c_diag, d)
     u[1:-1] = u_int
-
-    #Plot against true solution
-    plt.figure(figsize=(8,5))
-    
-    plt.plot(x, u, '-', label=f'Numerical Approximation N={N}')
-    
-    if u_exact is not None:
-        x_fine = np.linspace(0.0, 1.0, 200)
-        plt.plot(x_fine, u_exact(x_fine), label='True Solution: $u_{exact}(x)$')
-
-    plt.title("1D Elliptic BVP: $-u''(x) = f(x)$")
-    plt.xlabel("$x$")
-    plt.ylabel("$u(x)$")
-    plt.legend()   
-    plt.grid(True)
-    plt.show()
     
     return x, u
 
@@ -79,4 +63,20 @@ if __name__ == "__main__":
     u_exact = lambda x: x - np.sin(2*np.pi*x)
     f = lambda x: -4*(np.pi**2)*np.sin(2*np.pi*x)
     N=10
-    elliptic_bvp_solver(alpha, beta, f, N, u_exact)
+    elliptic_bvp_solver(alpha, beta, f, N)
+        
+    #Plot against true solution
+    plt.figure(figsize=(8,5))
+    
+    plt.plot(x, u, '-', label=f'Numerical Approximation N={N}')
+    
+    x_fine = np.linspace(0.0, 1.0, 200)
+    plt.plot(x_fine, u_exact(x_fine), label='True Solution: $u_{exact}(x)$')
+
+    plt.title("1D Elliptic BVP: $-u''(x) = f(x)$")
+    plt.xlabel("$x$")
+    plt.ylabel("$u(x)$")
+    plt.legend()   
+    plt.grid(True)
+    plt.show()
+    
