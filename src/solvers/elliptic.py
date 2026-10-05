@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from tridiagonal import thomas_solver
+from src.solvers.tridiagonal import thomas_solver
 
 def elliptic_bvp_solver(alpha, beta, f, N):
     '''
@@ -62,8 +62,8 @@ if __name__ == "__main__":
     beta = 1
     u_exact = lambda x: x - np.sin(2*np.pi*x)
     f = lambda x: -4*(np.pi**2)*np.sin(2*np.pi*x)
-    N=10
-    elliptic_bvp_solver(alpha, beta, f, N)
+    N = 10
+    x, u = elliptic_bvp_solver(alpha, beta, f, N)
         
     #Plot against true solution
     plt.figure(figsize=(8,5))
