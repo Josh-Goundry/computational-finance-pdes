@@ -3,11 +3,6 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")
 
 import numpy as np 
 import matplotlib.pyplot as plt
-from src.engines.black_scholes import space_bs_wrapper
-from src.engines.black_scholes import time_bs_wrapper
-from src.engines.heat_diffusion import space_heat_wrapper
-from src.engines.heat_diffusion import time_heat_wrapper
-from src.solvers.elliptic import elliptic_wrapper
 
 def plot_convergence(fn_wrapper, N_values):
     '''
@@ -56,7 +51,3 @@ def plot_convergence(fn_wrapper, N_values):
     plt.show()
 
     return p, dx_array, error_array
-
-if __name__ == "__main__":
-    N_values = [10, 20, 40, 80, 160]
-    plot_convergence(elliptic_wrapper, N_values)
