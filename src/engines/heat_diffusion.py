@@ -78,52 +78,6 @@ def heat_eq(f, N, M, alpha, beta, u_0, a, T):
     
     return u, x, t
 
-def space_heat_wrapper(N):
-    #Defining our step size
-    dx = 1.0/N
-
-    #Assigning parameters
-    a = np.pi**-2
-    T = 1
-    alpha = 0
-    beta = 1
-    u_0 = lambda x: np.sin(2*np.pi*x) + x
-    M = 1000000 #Maintianing a large temporal step count for minimal error interference
-    f = None
-
-    #Asigning our exact and numerical solution
-    u_num, x, t = heat_eq(f, N, M, alpha, beta, u_0, a, T)
-    u_exact = np.exp(-4*T) * np.sin(2*np.pi*x) + x
-
-    #Finding Error
-    L_inf_error = np.max(np.abs(u_num[:, -1] - u_exact))
-    L2_error = np.sqrt(dx*np.sum((u_num[:, -1] - u_exact)**2))
-    
-    return dx, L2_error, L_inf_error
-
-def time_heat_wrapper(M):
-    #Assigning parameters
-    a = np.pi**-2
-    T = 1
-    alpha = 0
-    beta = 1
-    u_0 = lambda x: np.sin(2*np.pi*x) + x
-    N = 10000 #Maintianing a large spatial step count for minimal error interference
-    f = None
-
-    #Defining our step size
-    dt = T/M
-    
-    #Asigning our exact and numerical solution
-    u_num, x, t = heat_eq(f, N, M, alpha, beta, u_0, a, T)
-    u_exact = np.exp(-4*T) * np.sin(2*np.pi*x) + x
-
-    #Finding Error
-    L_inf_error = np.max(np.abs(u_num[:, -1] - u_exact))
-    L2_error = np.sqrt(dt*np.sum((u_num[:, -1] - u_exact)**2))
-
-    return dt, L2_error, L_inf_error
-
 if __name__ == "__main__":
     a = np.pi**-2
     T = 1

@@ -70,60 +70,6 @@ def bs_solver(R, M, f_0, f_R, g, vol, r, T, K):
     
     return V, s, t
 
-def space_bs_wrapper(R):
-    #Assigning parameters
-    K = 100
-    M = 10000 #Maintaining a large temporal step count to minimise error interference
-    r = 0
-    vol = 0.5
-    T = 5.0
-    f_0 = lambda t: K*np.exp(-r*t)
-    d_plus = lambda t, s: 1/(vol*np.sqrt(np.maximum(t, 1e-15))) * (np.log(np.maximum(s, 1e-15)/K) + (r + ((vol**2)/2)*np.maximum(t, 1e-15)))
-    d_minus = lambda t, s: 1/(vol*np.sqrt(np.maximum(t, 1e-15))) * (np.log(np.maximum(s, 1e-15)/K) + (r - ((vol**2)/2)*np.maximum(t, 1e-15)))
-    phi = lambda s: 1/2 * special.erfc(-s/np.sqrt(2))
-    f_R = lambda t, s: K*np.exp(-r*t)*phi(-d_minus(t, s))-s*phi(-d_plus(t, s))
-    g = lambda s: np.maximum(K-s, 0)
-    
-    #Defining our step size
-    ds = 3*K/R
-    
-    #Asigning our exact and numerical solution
-    V_num, s, t = bs_solver(R, M, f_0, f_R, g, vol, r, T, K)
-    V_exact = f_R(T, s)
-
-    #Finding Error
-    L_inf_error = np.max(np.abs(V_num[:, -1] - V_exact))
-    L2_error = np.sqrt(ds*np.sum((V_num[:, -1] - V_exact)**2))
-    
-    return ds, L2_error, L_inf_error
-
-def time_bs_wrapper(M):
-    #Assigning parameters
-    K = 100
-    r = 0
-    vol = 0.5
-    T = 5.0
-    R = 10000 #Maintaining a large spatial step count to minimise error interference
-    f_0 = lambda t: K*np.exp(-r*t)
-    d_plus = lambda t, s: 1/(vol*np.sqrt(np.maximum(t, 1e-15))) * (np.log(np.maximum(s, 1e-15)/K) + (r + ((vol**2)/2)*np.maximum(t, 1e-15)))
-    d_minus = lambda t, s: 1/(vol*np.sqrt(np.maximum(t, 1e-15))) * (np.log(np.maximum(s, 1e-15)/K) + (r - ((vol**2)/2)*np.maximum(t, 1e-15)))
-    phi = lambda s: 1/2 * special.erfc(-s/np.sqrt(2))
-    f_R = lambda t, s: K*np.exp(-r*t)*phi(-d_minus(t, s))-s*phi(-d_plus(t, s))
-    g = lambda s: np.maximum(K-s, 0)
-
-    #Defining our step size
-    dt = T/M
-
-    #Asigning our exact and numerical solution
-    V_num, s, t = bs_solver(R, M, f_0, f_R, g, vol, r, T, K)
-    V_exact = f_R(T, s)
-
-    #Finding Error
-    L_inf_error = np.max(np.abs(V_num[:, -1] - V_exact))
-    L2_error = np.sqrt(dt*np.sum((V_num[:, -1] - V_exact)**2))
-    
-    return dt, L2_error, L_inf_error
-
 if __name__ == "__main__":
     K = 100
     M = 20
