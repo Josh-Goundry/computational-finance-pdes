@@ -3,7 +3,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")
 
 import numpy as np 
 import matplotlib.pyplot as plt
-from src.engines.black_scholes import time_bs_wrapper
+from src.engines.heat_diffusion import heat_eq
 
 def plot_convergence(fn_wrapper, N_values):
     '''
@@ -53,6 +53,32 @@ def plot_convergence(fn_wrapper, N_values):
 
     return p, dx_array, error_array
 
-if __name__ == "__main__":
-    N_values = [10, 20, 40, 80, 160]
-    plot_convergence(time_bs_wrapper, N_values)
+# Copy of the wrapper in `02_Heat_Equation_Verification.ipynb` 
+def time_heat_wrapper(M):
+    #Assigning parameters
+    a = np.pi**-2
+    T = 1
+    N = 10000
+    alpha = 0
+    beta = 1
+    u_0 = lambda x: np.sin(2*np.pi*x) + x
+    f = None
+
+    #Defining our step sizes
+    dx = 1/N
+    dt = T/M
+    
+    #Asigning our exact and numerical solution
+    u_num, x, t = heat_eq(f, N, M, alpha, beta, u_0, a, T)
+    u_exact = np.exp(-4*T) * np.sin(2*np.pi*x) + x
+
+    #Finding Error
+    L_inf_error = np.max(np.abs(u_num[:, -1] - u_exact))
+    L2_error = np.sqrt(dx*np.sum((u_num[:, -1] - u_exact)**2))
+
+    return dt, L2_error, L_inf_error
+
+M_values = [10, 20, 40, 80, 160]
+
+if __name__ == "__name__":
+    plot_convergence(time_heat_wrapper, M_values)
