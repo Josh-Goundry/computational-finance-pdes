@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from src.solvers.tridiagonal import thomas_solver as ts
 from scipy import special
 
-def bs_solver(R, M, f_0, f_R, g, vol, r, T, K):
+def bs_solver(R, M, f_0, f_R, g, vol, r, T, K, method='scheme'):
     '''
     Solver for the backward time Black-Scholes equation.
 
@@ -27,6 +27,8 @@ def bs_solver(R, M, f_0, f_R, g, vol, r, T, K):
         Time until expiration.
     K : float
         Strike price of the call option.
+    method : "BTCS", "CN", "RS"
+        Choose the scheme which solves the problem. RS = Rannacher Smoothed Crank-Nicolson, CN = Naive Crank-Nicolson, BTCS = 
 
     ========OUTPUT========
     V : ndarray(), shape(N+1, M+1)
@@ -48,25 +50,46 @@ def bs_solver(R, M, f_0, f_R, g, vol, r, T, K):
     V = np.zeros((R+1, M+1))
     i = np.arange(1, R)
 
-    #Defining the tridiagonal entries
+    #Defining the tridiagonal entries for BTCS
     sub_diag = (dt/2) * i * (r - (vol**2 * i))
     sub_diag[0] = 0
     main_diag = (1 + dt*(vol**2 * i**2 + r))
     super_diag = -(dt/2) * i * (r + (vol**2 * i))
     super_diag[-1] = 0
 
+    #Defining the tridiagonal entries for CN
+
     #Appling our BCs and IC
     V[0,:] = f_0(t)         #BC_0
     V[-1,:] = f_R(t, s[-1])     #BC_1
     V[:,0] = g(s)           #IC
 
-    #Recursive loop solving each tridiagonal system
-    for n in range(M):
-        b = V[1:-1, n].copy()
-        b[0] -= (dt/2) * 1 * (r - (vol**2 * 1)) * f_0(t[n+1])
-        b[-1] -= -(dt/2) * (R-1) * (r + (vol**2 * (R-1))) * f_R(t[n+1], s[-1])
+    #Recursive loops solving each tridiagonal system
+    if method == "BTCS":
+        for n in range(M):
+            b = V[1:-1, n].copy()
+            b[0] -= (dt/2) * 1 * (r - (vol**2 * 1)) * f_0(t[n+1])
+            b[-1] -= -(dt/2) * (R-1) * (r + (vol**2 * (R-1))) * f_R(t[n+1], s[-1])
 
-        V[1:-1,n+1] = ts(sub_diag, main_diag, super_diag, b)
+            V[1:-1,n+1] = ts(sub_diag, main_diag, super_diag, b)
+
+    if method == "CN":
+        #Placeholder Code
+        for n in range(M):
+            b = V[1:-1, n].copy()
+            b[0] -= (dt/2) * 1 * (r - (vol**2 * 1)) * f_0(t[n+1])
+            b[-1] -= -(dt/2) * (R-1) * (r + (vol**2 * (R-1))) * f_R(t[n+1], s[-1])
+
+            V[1:-1,n+1] = ts(sub_diag, main_diag, super_diag, b)
+
+    if method == "RS":
+        #Placeholder Code
+        for n in range(M):
+            b = V[1:-1, n].copy()
+            b[0] -= (dt/2) * 1 * (r - (vol**2 * 1)) * f_0(t[n+1])
+            b[-1] -= -(dt/2) * (R-1) * (r + (vol**2 * (R-1))) * f_R(t[n+1], s[-1])
+
+            V[1:-1,n+1] = ts(sub_diag, main_diag, super_diag, b)
     
     return V, s, t
 
