@@ -58,11 +58,20 @@ def bs_solver(R, M, f_0, f_R, g, vol, r, T, K, method='scheme'):
     super_diag[-1] = 0
 
     #Defining the tridiagonal entries for CN
+    a_cn = (dt * vol**2 * i**2)/4
+    b_cn = (dt * r * i)/4
+    c_cn = (dt * r)/2
+
+    cn_sub = (b_cn - a_cn).copy()
+    cn_sub[0] = 0
+    cn_main = 1 + 2*a_cn + c_cn
+    cn_super = -(a_cn + b_cn).copy()
+    cn_super[-1] = 0
 
     #Appling our BCs and IC
-    V[0,:] = f_0(t)         #BC_0
+    V[0,:] = f_0(t)             #BC_0
     V[-1,:] = f_R(t, s[-1])     #BC_1
-    V[:,0] = g(s)           #IC
+    V[:,0] = g(s)               #IC
 
     #Recursive loops solving each tridiagonal system
     if method == "BTCS":
@@ -74,26 +83,59 @@ def bs_solver(R, M, f_0, f_R, g, vol, r, T, K, method='scheme'):
             V[1:-1,n+1] = ts(sub_diag, main_diag, super_diag, b)
 
     if method == "CN":
-        #Placeholder Code
         for n in range(M):
-            b = V[1:-1, n].copy()
-            b[0] -= (dt/2) * 1 * (r - (vol**2 * 1)) * f_0(t[n+1])
-            b[-1] -= -(dt/2) * (R-1) * (r + (vol**2 * (R-1))) * f_R(t[n+1], s[-1])
+            b_temp = V[1:-1, n].copy()
+            b = np.zeros(R-1)
+            
+            b[:-1] += b_temp[1:]*(a_cn[:-1] + b_cn[:-1])
+            b[1:] += b_temp[:-1]*(a_cn[1:] - b_cn[1:])
+            b += b_temp*(1-2*a_cn-c_cn)
 
-            V[1:-1,n+1] = ts(sub_diag, main_diag, super_diag, b)
+            b[0] += (a_cn[0] - b_cn[0])*(f_0(t[n]) + f_0(t[n+1]))
+            b[-1] += (a_cn[-1] + b_cn[-1])*(f_R(t[n], s[-1]) + f_R(t[n+1], s[-1]))
+
+            V[1:-1,n+1] = ts(cn_sub, cn_main, cn_super, b)
 
     if method == "RS":
-        #Placeholder Code
-        for n in range(M):
-            b = V[1:-1, n].copy()
-            b[0] -= (dt/2) * 1 * (r - (vol**2 * 1)) * f_0(t[n+1])
-            b[-1] -= -(dt/2) * (R-1) * (r + (vol**2 * (R-1))) * f_R(t[n+1], s[-1])
+        half_dt = dt / 2
+        b_half = V[1:-1, 0]
 
-            V[1:-1,n+1] = ts(sub_diag, main_diag, super_diag, b)
-    
+        sub_diag_half = (half_dt/2) * i * (r - (vol**2 * i))
+        sub_diag_half[0] = 0
+        main_diag_half = (1 + half_dt*(vol**2 * i**2 + r))
+        super_diag_half = -(half_dt/2) * i * (r + (vol**2 * i))
+        super_diag_half[-1] = 0
+
+        #Backward Euler
+        for n in range(1, 5):
+            t_half = n * half_dt
+
+            b = b_half.copy()
+            b[0] -= (half_dt/2) * 1 * (r - (vol**2 * 1)) * f_0(t_half)
+            b[-1] -= -(half_dt/2) * (R-1) * (r + (vol**2 * (R-1))) * f_R(t_half, s[-1])
+
+            b_half = ts(sub_diag_half, main_diag_half, super_diag_half, b)
+
+            if n % 2 == 0:
+                V[1:-1, n//2] = b_half
+
+        #Crank-Nicolson
+        for n in range(2, M):
+            b_temp = V[1:-1, n].copy()
+            b = np.zeros(R-1)
+            
+            b[:-1] += b_temp[1:]*(a_cn[:-1] + b_cn[:-1])
+            b[1:] += b_temp[:-1]*(a_cn[1:] - b_cn[1:])
+            b += b_temp*(1-2*a_cn-c_cn)
+
+            b[0] += (a_cn[0] - b_cn[0])*(f_0(t[n]) + f_0(t[n+1]))
+            b[-1] += (a_cn[-1] + b_cn[-1])*(f_R(t[n], s[-1]) + f_R(t[n+1], s[-1]))
+
+            V[1:-1,n+1] = ts(cn_sub, cn_main, cn_super, b)
     return V, s, t
 
 if __name__ == "__main__":
+    method = "RS"
     K = 100
     M = 20
     r = 0
@@ -106,7 +148,7 @@ if __name__ == "__main__":
     phi = lambda s: 1/2 * special.erfc(-s/np.sqrt(2))
     f_R = lambda t, s: K*np.exp(-r*t)*phi(-d_minus(t, s))-s*phi(-d_plus(t, s))
     g = lambda s: np.maximum(K-s, 0)
-    V, s, t = bs_solver(R, M, f_0, f_R, g, vol, r, T, K)
+    V, s, t = bs_solver(R, M, f_0, f_R, g, vol, r, T, K, method)
 
     S_grid, T_grid = np.meshgrid(s, t)
 
@@ -118,7 +160,7 @@ if __name__ == "__main__":
     ax.set_xlabel('Spot Price (S)')
     ax.set_ylabel('Time (t)')
     ax.set_zlabel('Option Price (V)')
-    ax.set_title('Black-Scholes Option Surface')
+    ax.set_title('Black-Scholes Option Surface (' + str(method) + ')')
     fig.colorbar(surf, ax=ax, shrink=0.5, aspect=5, label='V(S, t)')
 
     plt.tight_layout()
